@@ -31,7 +31,8 @@ export interface RegisterData {
 
 // Quiz Types
 export interface Question {
-  id: string;
+  _id?: string; // optional, API may not provide
+  id: string; // keep existing id if used elsewhere
   questionText: string;
   choices: string[];
   correctAnswer: number;
