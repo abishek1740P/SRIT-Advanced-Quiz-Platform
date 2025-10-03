@@ -1,6 +1,6 @@
-import { Card } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
+import { Card } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 interface QuestionCardProps {
   questionNumber: number;
@@ -13,6 +13,7 @@ interface QuestionCardProps {
   isReview?: boolean;
   correctAnswer?: number;
   userAnswer?: number;
+  isMobile?: boolean; // added mobile prop
 }
 
 export default function QuestionCard({
@@ -25,7 +26,8 @@ export default function QuestionCard({
   points = 5,
   isReview = false,
   correctAnswer,
-  userAnswer
+  userAnswer,
+  isMobile = false, // default false
 }: QuestionCardProps) {
   return (
     <Card className="p-6" data-testid={`question-card-${questionNumber}`}>
@@ -37,7 +39,9 @@ export default function QuestionCard({
                 Question {questionNumber} of {totalQuestions}
               </span>
               <span className="text-sm text-muted-foreground">•</span>
-              <span className="text-sm font-medium text-primary">{points} points</span>
+              <span className="text-sm font-medium text-primary">
+                {points} points
+              </span>
             </div>
             <h3 className="text-lg font-semibold" data-testid="text-question">
               {questionText}
@@ -52,16 +56,21 @@ export default function QuestionCard({
         >
           {choices.map((choice, index) => {
             const isCorrect = isReview && correctAnswer === index;
-            const isWrong = isReview && userAnswer === index && userAnswer !== correctAnswer;
+            const isWrong =
+              isReview && userAnswer === index && userAnswer !== correctAnswer;
             const isSelected = selectedAnswer === index;
 
             return (
               <div
                 key={index}
                 className={`flex items-center space-x-3 rounded-md border p-4 hover-elevate ${
-                  isCorrect ? 'border-success bg-success/5' :
-                  isWrong ? 'border-violation bg-violation/5' :
-                  isSelected ? 'border-primary' : ''
+                  isCorrect
+                    ? "border-success bg-success/5"
+                    : isWrong
+                    ? "border-violation bg-violation/5"
+                    : isSelected
+                    ? "border-primary"
+                    : ""
                 }`}
                 data-testid={`choice-${index}`}
               >
@@ -77,10 +86,14 @@ export default function QuestionCard({
                   {choice}
                 </Label>
                 {isCorrect && (
-                  <span className="text-xs font-medium text-success">Correct</span>
+                  <span className="text-xs font-medium text-success">
+                    Correct
+                  </span>
                 )}
                 {isWrong && (
-                  <span className="text-xs font-medium text-violation">Your answer</span>
+                  <span className="text-xs font-medium text-violation">
+                    Your answer
+                  </span>
                 )}
               </div>
             );

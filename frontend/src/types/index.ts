@@ -280,6 +280,7 @@ export interface QuestionCardProps {
   onAnswerSelect?: (answerIndex: number) => void;
   selectedAnswer?: number;
   timeTaken?: number;
+  isMobile?: boolean; // add this line
 }
 
 export interface QuizCardProps {
