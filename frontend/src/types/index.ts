@@ -33,8 +33,10 @@ export interface RegisterData {
 // Remove these interfaces from your component and use the ones from your types file
 // Or update them to match:
 
+// In your types file, update the Question interface:
+// In your @/types file
 export interface Question {
-  _id?: string;
+  _id: string; // Make sure this is required (not optional)
   questionText: string;
   choices: string[];
   correctAnswer: number;

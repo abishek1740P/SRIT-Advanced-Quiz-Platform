@@ -32,24 +32,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { studentAPI } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
-
-interface Question {
-  _id: string;
-  questionText: string;
-  choices: string[];
-  correctAnswer: number;
-  points: number;
-}
-
-interface Quiz {
-  _id: string;
-  title: string;
-  description: string;
-  duration: number;
-  questions: Question[];
-  secretCode: string;
-  teacher: string;
-}
+import { Quiz, Question } from "@/types"; // Import from your types file
 
 export default function QuizAttemptPage() {
   const params = useParams();
@@ -86,7 +69,6 @@ export default function QuizAttemptPage() {
           }
         } else {
           // Otherwise, try to get quiz by ID (for review purposes)
-          // You might need to add this endpoint to your API
           toast({
             title: "Error",
             description: "Quiz code is required",
@@ -95,8 +77,6 @@ export default function QuizAttemptPage() {
           router.push("/dashboard/student");
         }
       } catch (error: any) {
-        
-
         if (error.response?.status === 401) {
           toast({
             title: "Session Expired",
@@ -150,7 +130,6 @@ export default function QuizAttemptPage() {
         await (elem as any).msRequestFullscreen();
       }
     } catch (error) {
-      
       toast({
         title: "Fullscreen Not Available",
         description:
@@ -343,8 +322,6 @@ export default function QuizAttemptPage() {
         })
       );
 
-      
-
       const response = await studentAPI.submitQuiz(quiz._id, {
         answers: formattedAnswers,
         violations,
@@ -375,8 +352,6 @@ export default function QuizAttemptPage() {
         setTimeout(() => router.push("/dashboard/student"), 1500);
       }
     } catch (error: any) {
-    
-
       if (error.response?.status === 401) {
         toast({
           title: "Session Expired",
