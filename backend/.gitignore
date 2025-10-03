@@ -1,0 +1,55 @@
+# Node dependencies
+/node_modules/
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Build output
+/dist/
+/build/
+/lib/
+
+# Runtime / temp
+/tmp/
+temp/
+*.log
+logs/
+pids/
+*.pid
+
+# Environment files (never commit secrets)
+.env
+.env.* 
+
+# Coverage & test output
+/coverage/
+/.nyc_output/
+
+# TypeScript
+*.tsbuildinfo
+
+# Uploaded files (if you keep uploads locally)
+uploads/
+tmp_uploads/
+
+# Database files
+*.sqlite
+*.sqlite3
+
+# Certificates / keys
+*.pem
+*.key
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Misc
+*.tgz
