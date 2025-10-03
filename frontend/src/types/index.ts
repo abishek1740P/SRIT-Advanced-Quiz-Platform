@@ -30,27 +30,25 @@ export interface RegisterData {
 }
 
 // Quiz Types
-export interface Question {
-  _id?: string; // optional, API may not provide
-  id: string; // keep existing id if used elsewhere
+// Remove these interfaces from your component and use the ones from your types file
+// Or update them to match:
+
+interface Question {
+  _id?: string;
   questionText: string;
   choices: string[];
   correctAnswer: number;
   points: number;
 }
 
-export interface Quiz {
+interface Quiz {
   _id: string;
   title: string;
   description: string;
   duration: number;
   questions: Question[];
-  teacher: string | User;
   secretCode: string;
-  isActive: boolean;
-  scheduledFor: string;
-  createdAt: string;
-  updatedAt: string;
+  teacher: string;
 }
 
 export interface CreateQuizData {
