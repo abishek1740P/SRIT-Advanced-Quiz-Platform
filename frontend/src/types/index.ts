@@ -30,13 +30,9 @@ export interface RegisterData {
 }
 
 // Quiz Types
-// Remove these interfaces from your component and use the ones from your types file
-// Or update them to match:
 
-// In your types file, update the Question interface:
-// In your @/types file
 export interface Question {
-  _id: string; // Make sure this is required (not optional)
+  _id?: string; // Make _id optional
   questionText: string;
   choices: string[];
   correctAnswer: number;
@@ -59,15 +55,14 @@ export interface CreateQuizData {
   title: string;
   description: string;
   duration: number;
-  questions: Question[];
+  questions: Omit<Question, "_id">[]; // Exclude _id when creating
 }
-
 // Answer Types
 export interface Answer {
   questionIndex: number;
   selectedAnswer: number;
-  isCorrect: boolean;
   timeTaken: number;
+  isCorrect?: boolean; // Make this optional since it's calculated by backend
 }
 
 export interface DetailedAnswer {
