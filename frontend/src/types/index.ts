@@ -33,7 +33,7 @@ export interface RegisterData {
 // Remove these interfaces from your component and use the ones from your types file
 // Or update them to match:
 
-interface Question {
+export interface Question {
   _id?: string;
   questionText: string;
   choices: string[];
@@ -41,7 +41,7 @@ interface Question {
   points: number;
 }
 
-interface Quiz {
+export interface Quiz {
   _id: string;
   title: string;
   description: string;
@@ -49,6 +49,8 @@ interface Quiz {
   questions: Question[];
   secretCode: string;
   teacher: string;
+  isActive: boolean;
+  createdAt: string;
 }
 
 export interface CreateQuizData {
