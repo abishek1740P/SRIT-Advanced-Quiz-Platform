@@ -36,8 +36,12 @@ export default function Header() {
           className="flex items-center gap-3"
         >
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25">
-              <Lock className="w-5 h-5 text-white" />
+            <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25 border border-blue-200">
+              <img
+                src="/srit_logo.jpg"
+                alt="SRIT Logo"
+                className="w-6 h-6 object-contain"
+              />
             </div>
             <div className="flex flex-col">
               <Link href="/" className="flex flex-col">
