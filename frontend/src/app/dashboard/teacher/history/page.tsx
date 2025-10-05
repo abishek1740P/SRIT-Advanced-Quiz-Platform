@@ -79,6 +79,7 @@ export default function TeacherHistoryPage() {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState<string | null>(null);
   const [dashboardStats, setDashboardStats] = useState<any>(null);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null); // Add this line
 
   useEffect(() => {
     fetchQuizHistory();
@@ -429,8 +430,50 @@ export default function TeacherHistoryPage() {
                               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                                 <span>{formatDate(quiz.date)}</span>
                                 {quiz.secretCode && (
-                                  <span className="flex items-center gap-1 bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded text-xs">
-                                    Code: {quiz.secretCode}
+                                  <span
+                                    className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs cursor-pointer transition-all duration-200 ${
+                                      copiedCode === quiz.secretCode
+                                        ? "bg-green-500/20 text-green-300 scale-105"
+                                        : "bg-blue-500/20 text-blue-300 hover:bg-blue-500/30"
+                                    }`}
+                                    onClick={(e) => {
+                                      e.stopPropagation(); // Prevent triggering the collapsible
+                                      if (quiz.secretCode) {
+                                        navigator.clipboard.writeText(
+                                          quiz.secretCode
+                                        );
+                                        setCopiedCode(quiz.secretCode);
+                                        toast({
+                                          title: "Code Copied!",
+                                          description:
+                                            "Quiz code has been copied to clipboard",
+                                        });
+
+                                        setTimeout(
+                                          () => setCopiedCode(null),
+                                          2000
+                                        );
+                                      }
+                                    }}
+                                  >
+                                    {copiedCode === quiz.secretCode ? (
+                                      <>
+                                        <svg
+                                          className="w-3 h-3"
+                                          fill="currentColor"
+                                          viewBox="0 0 20 20"
+                                        >
+                                          <path
+                                            fillRule="evenodd"
+                                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                            clipRule="evenodd"
+                                          />
+                                        </svg>
+                                        Copied!
+                                      </>
+                                    ) : (
+                                      `Code: ${quiz.secretCode}`
+                                    )}
                                   </span>
                                 )}
                                 {!quiz.hasAnalytics &&
