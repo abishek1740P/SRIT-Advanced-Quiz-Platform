@@ -15,12 +15,22 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        {/* Browser Icon */}
+        <link rel="icon" href="/ideas.png" type="image/png" />
+
+        {/* Browser Theme Color */}
+        <meta name="theme-color" content="#182539" />
+
+        {/* Optional: SEO title */}
+        <title>SRIT Quiz Platform</title>
+      </head>
       <body className="bg-white text-gray-900 min-h-screen flex flex-col antialiased">
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
             <TooltipProvider>
               <Header />
-              <main className="flex-1">{children}</main> {/* Removed p-6 */}
+              <main className="flex-1">{children}</main>
               <Toaster />
             </TooltipProvider>
           </AuthProvider>
