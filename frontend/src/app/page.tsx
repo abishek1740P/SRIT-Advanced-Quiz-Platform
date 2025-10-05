@@ -13,10 +13,12 @@ import {
   BookOpen,
   Award,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     setIsVisible(true);
@@ -25,6 +27,17 @@ export default function HomePage() {
     }, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleGetStarted = () => {
+    router.push("/auth/login");
+  };
+
+  const handleLearnMore = () => {
+    const featuresSection = document.getElementById("features");
+    if (featuresSection) {
+      featuresSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   const features = [
     {
@@ -130,6 +143,7 @@ export default function HomePage() {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  onClick={handleGetStarted}
                   className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl font-semibold flex items-center justify-center space-x-2 hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg shadow-blue-500/25"
                 >
                   <Play className="w-5 h-5" />
@@ -139,32 +153,14 @@ export default function HomePage() {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  onClick={handleLearnMore}
                   className="px-8 py-4 bg-slate-800/50 border border-slate-700/50 rounded-xl font-semibold backdrop-blur-sm hover:bg-slate-700/50 transition-all"
                 >
                   Learn More
                 </motion.button>
               </div>
 
-              {/* Stats */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-                className="grid grid-cols-3 gap-8 pt-8"
-              >
-                {[
-                  { number: "500+", label: "Active Quizzes" },
-                  { number: "2K+", label: "Students" },
-                  { number: "50+", label: "Faculty" },
-                ].map((stat, index) => (
-                  <div key={index} className="text-center">
-                    <div className="text-2xl font-bold text-blue-400">
-                      {stat.number}
-                    </div>
-                    <div className="text-sm text-slate-400">{stat.label}</div>
-                  </div>
-                ))}
-              </motion.div>
+              {/* Stats - Removed as requested */}
             </motion.div>
 
             {/* Right Content - Carousel */}
@@ -214,7 +210,7 @@ export default function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="relative z-10 px-6 py-20">
+      <section id="features" className="relative z-10 px-6 py-20">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -227,7 +223,8 @@ export default function HomePage() {
             </h2>
             <p className="text-xl text-slate-300 max-w-2xl mx-auto">
               Built with cutting-edge technology to ensure secure and efficient
-              assessments
+              assessments. Create and implement unlimited quizzes seamlessly for
+              your educational needs.
             </p>
           </motion.div>
 
@@ -267,13 +264,14 @@ export default function HomePage() {
               Ready to Transform Your Assessment Experience?
             </h2>
             <p className="text-xl text-slate-300 mb-8">
-              Join faculty and students at SRIT in using the most secure quiz
-              platform available.
+              Create unlimited quizzes and implement them seamlessly for faculty
+              and students at SRIT.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                onClick={handleGetStarted}
                 className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl font-semibold flex items-center justify-center space-x-2 hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg shadow-blue-500/25"
               >
                 <BookOpen className="w-5 h-5" />
