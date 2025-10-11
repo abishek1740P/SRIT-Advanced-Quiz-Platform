@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { RecentQuiz, DashboardStats } from "@/types";
 import { Loader2 } from "lucide-react";
 
+// Use the same interface as in QuizAnalyticsCard
 interface StudentPerformance {
   name: string;
   email: string;
@@ -24,6 +25,9 @@ interface StudentPerformance {
   violations: number;
   timeTaken: number;
   status: string;
+  startTime: string;
+  endTime: string;
+  attendedAt: string;
 }
 
 interface QuizAnalytics {
@@ -136,11 +140,34 @@ export default function TeacherHistoryPage() {
         setQuizHistory((prev) =>
           prev.map((quiz) => {
             if (quiz.id === quizId) {
+              const studentsWithAttendance = (analyticsData.students || []).map(
+                (student: any) => ({
+                  name: student.name || "Unknown",
+                  email: student.email || "No email",
+                  score: student.score || 0,
+                  totalPoints: student.totalPoints || 0,
+                  scorePercentage: student.scorePercentage || 0,
+                  violations: student.violations || 0,
+                  timeTaken: student.timeTaken || 0,
+                  status: student.status || "unknown",
+                  startTime: student.startTime || "",
+                  endTime: student.endTime || "",
+                  attendedAt:
+                    student.attendedAt ||
+                    student.startTime ||
+                    student.endTime ||
+                    new Date().toISOString(),
+                })
+              );
+
+              // Debug: Check the student data
+              console.log("Processed students:", studentsWithAttendance);
+
               return {
                 ...quiz,
                 totalPoints:
                   analyticsData.quiz?.totalPoints || quiz.totalPoints,
-                students: analyticsData.students || [],
+                students: studentsWithAttendance,
                 hasAnalytics: true,
               };
             }
@@ -155,10 +182,7 @@ export default function TeacherHistoryPage() {
         setQuizHistory((prev) =>
           prev.map((quiz) => {
             if (quiz.id === quizId) {
-              return {
-                ...quiz,
-                hasAnalytics: false,
-              };
+              return { ...quiz, hasAnalytics: false };
             }
             return quiz;
           })
@@ -169,10 +193,7 @@ export default function TeacherHistoryPage() {
       setQuizHistory((prev) =>
         prev.map((quiz) => {
           if (quiz.id === quizId) {
-            return {
-              ...quiz,
-              hasAnalytics: false,
-            };
+            return { ...quiz, hasAnalytics: false };
           }
           return quiz;
         })
@@ -198,6 +219,7 @@ export default function TeacherHistoryPage() {
     }
   };
 
+  // In your TeacherHistoryPage component, update the handleExportCSV function:
   const handleExportCSV = async (quizId: string, quizTitle: string) => {
     try {
       setExporting(quizId);
@@ -212,6 +234,9 @@ export default function TeacherHistoryPage() {
         return;
       }
 
+      // Debug: Check the actual student data
+      console.log("Raw student data:", quiz.students);
+
       const headers = [
         "Name",
         "Email",
@@ -220,25 +245,43 @@ export default function TeacherHistoryPage() {
         "Percentage",
         "Violations",
         "Time Taken (min)",
+        "Attended Date",
         "Status",
       ];
-      const studentData = quiz.students.map((student) => [
-        student.name,
-        student.email,
-        student.score.toString(),
-        student.totalPoints.toString(),
-        student.scorePercentage.toString() + "%",
-        student.violations.toString(),
-        student.timeTaken.toString(),
-        student.status,
-      ]);
+
+      const studentData = quiz.students.map((student) => {
+        // Debug each student
+        console.log("Processing student:", student);
+
+        const formattedDate = formatDate(student.attendedAt);
+        console.log("Formatted date:", formattedDate);
+
+        return [
+          student.name || "N/A",
+          student.email || "N/A",
+          student.score?.toString() || "0",
+          student.totalPoints?.toString() || "0",
+          `${student.scorePercentage?.toString() || "0"}%`,
+          student.violations?.toString() || "0",
+          student.timeTaken?.toString() || "0",
+          formattedDate,
+          student.status || "unknown",
+        ];
+      });
+
+      // Debug the final CSV data
+      console.log("Final CSV data sample:", studentData[0]);
 
       const csvContent = [
         headers.join(","),
-        ...studentData.map((row) => row.join(",")),
+        ...studentData.map((row) =>
+          row
+            .map((field) => `"${field.toString().replace(/"/g, '""')}"`)
+            .join(",")
+        ),
       ].join("\n");
 
-      const blob = new Blob([csvContent], { type: "text/csv" });
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -277,10 +320,33 @@ export default function TeacherHistoryPage() {
 
   const formatDate = (dateString: string) => {
     try {
-      return new Date(dateString).toLocaleDateString("en-US", {
+      if (!dateString) return "N/A";
+
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        console.warn("Invalid date string:", dateString);
+        return "Invalid Date";
+      }
+
+      return date.toLocaleDateString("en-US", {
         year: "numeric",
         month: "short",
         day: "numeric",
+      });
+    } catch (error) {
+      console.error("Error formatting date:", dateString, error);
+      return "Invalid Date";
+    }
+  };
+
+  const formatDateTime = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       });
     } catch (error) {
       return "Invalid Date";
@@ -330,6 +396,7 @@ export default function TeacherHistoryPage() {
               onCopyCode={handleCopyCode}
               onExportCSV={handleExportCSV}
               formatDate={formatDate}
+              formatDateTime={formatDateTime}
             />
           ))}
         </motion.div>

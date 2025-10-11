@@ -6,6 +6,20 @@ import { QuizCardHeader } from "./QuizCardHeader";
 import { StudentPerformanceTable } from "./StudentPerformanceTable";
 import { Loader2, AlertCircle } from "lucide-react";
 
+interface StudentPerformance {
+  name: string;
+  email: string;
+  score: number;
+  totalPoints: number;
+  scorePercentage: number;
+  violations: number;
+  timeTaken: number;
+  status: string;
+  startTime: string;
+  endTime: string;
+  attendedAt: string;
+}
+
 interface QuizAnalytics {
   id: string;
   title: string;
@@ -15,7 +29,7 @@ interface QuizAnalytics {
   avgScore: number;
   totalPoints: number;
   secretCode?: string;
-  students: any[];
+  students: StudentPerformance[];
   hasAnalytics: boolean;
 }
 
@@ -29,6 +43,7 @@ interface QuizAnalyticsCardProps {
   onCopyCode: (code: string) => void;
   onExportCSV: (quizId: string, quizTitle: string) => void;
   formatDate: (dateString: string) => string;
+  formatDateTime: (dateString: string) => string;
 }
 
 export function QuizAnalyticsCard({
@@ -41,6 +56,7 @@ export function QuizAnalyticsCard({
   onCopyCode,
   onExportCSV,
   formatDate,
+  formatDateTime,
 }: QuizAnalyticsCardProps) {
   const showTapToLoad = !quiz.hasAnalytics && expandedQuiz !== quiz.id;
 
@@ -73,6 +89,7 @@ export function QuizAnalyticsCard({
                   quizTitle={quiz.title}
                   exporting={exporting}
                   onExportCSV={onExportCSV}
+                  formatDate={formatDate} // Changed from formatDateTime to formatDate
                 />
               ) : (
                 <div className="text-center py-6 sm:py-8 text-slate-400">
