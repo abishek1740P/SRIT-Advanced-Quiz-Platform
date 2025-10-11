@@ -18,7 +18,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import QuestionCard from "@/components/QuestionCard";
-import { History, Award, CheckCircle2, Clock, AlertTriangle } from "lucide-react";
+import {
+  History,
+  Award,
+  CheckCircle2,
+  Clock,
+  AlertTriangle,
+} from "lucide-react";
 import { ProcessedQuizHistory } from "@/types";
 
 interface QuizHistoryCardProps {
@@ -27,7 +33,11 @@ interface QuizHistoryCardProps {
   onReview: (quiz: ProcessedQuizHistory) => void;
 }
 
-export function QuizHistoryCard({ quiz, index, onReview }: QuizHistoryCardProps) {
+export function QuizHistoryCard({
+  quiz,
+  index,
+  onReview,
+}: QuizHistoryCardProps) {
   const percentage = Math.round((quiz.score / quiz.maxScore) * 100);
   const correctCount = quiz.questions.filter(
     (q) => q.userAnswer === q.correctAnswer
@@ -51,7 +61,8 @@ export function QuizHistoryCard({ quiz, index, onReview }: QuizHistoryCardProps)
                   {quiz.title}
                 </CardTitle>
                 <CardDescription className="text-slate-400">
-                  {quiz.teacher} • {quiz.date}
+                  <div>{quiz.teacher}</div>
+                  <div>Attended on: {quiz.date}</div>
                 </CardDescription>
               </div>
             </div>

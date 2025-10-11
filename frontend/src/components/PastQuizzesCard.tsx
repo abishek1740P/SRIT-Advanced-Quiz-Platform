@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { History, Clock, BookOpen } from "lucide-react";
+import { History, Clock, BookOpen, Calendar } from "lucide-react";
 
 interface PastQuiz {
   id: string;
@@ -57,6 +57,19 @@ export function PastQuizzesCard({
       });
     } catch (error) {
       return "Unknown date";
+    }
+  };
+
+  const getFullFormattedDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch (error) {
+      return "Unknown Date";
     }
   };
 
@@ -114,11 +127,16 @@ export function PastQuizzesCard({
                     </h4>
                     <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-xs sm:text-sm text-slate-400">
                       <span className="truncate">{quiz.teacher}</span>
-                      <span className="hidden sm:inline">•</span>
+                      {/* <span className="hidden sm:inline">•</span>
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         {formatDate(quiz.date)}
-                      </span>
+                      </span> */}
+                    </div>
+                    {/* Quiz attended date - added this section */}
+                    <div className="flex items-center gap-1 text-xs text-slate-500 mt-1">
+                      <Calendar className="h-3 w-3" />
+                      <span>Attended: {getFullFormattedDate(quiz.date)}</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 w-full sm:w-auto mt-2 sm:mt-0">
