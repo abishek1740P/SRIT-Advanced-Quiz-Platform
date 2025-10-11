@@ -12,7 +12,8 @@ import { BackgroundElements } from "@/components/BackgroundElements";
 import { teacherAPI } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { RecentQuiz } from "@/types";
+import { RecentQuiz, DashboardStats } from "@/types";
+import { Loader2 } from "lucide-react";
 
 interface StudentPerformance {
   name: string;
@@ -46,7 +47,9 @@ export default function TeacherHistoryPage() {
   const [quizHistory, setQuizHistory] = useState<QuizAnalytics[]>([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState<string | null>(null);
-  const [dashboardStats, setDashboardStats] = useState<any>(null);
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(
+    null
+  );
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   useEffect(() => {
@@ -57,27 +60,45 @@ export default function TeacherHistoryPage() {
     try {
       setLoading(true);
       const dashboardResponse = await teacherAPI.getDashboardStats();
+      console.log("Dashboard response:", dashboardResponse);
 
       if (dashboardResponse.data.success) {
-        setDashboardStats(dashboardResponse.data.data);
+        const dashboardData: DashboardStats = dashboardResponse.data.data;
+        setDashboardStats(dashboardData);
 
-        const recentQuizzes = dashboardResponse.data.data.recentQuizzes;
+        // Use the correct TypeScript type
+        const recentQuizzes = dashboardData.recentQuizzes || [];
+
+        console.log("Recent quizzes:", recentQuizzes);
+
         const quizHistoryData: QuizAnalytics[] = recentQuizzes.map(
           (quiz: RecentQuiz) => ({
             id: quiz.id,
             title: quiz.title,
             date: quiz.date,
-            duration: 0,
+            duration: 0, // Not available in dashboard stats
             totalStudents: quiz.students,
             avgScore: quiz.avgScore,
-            totalPoints: 0,
+            totalPoints: 0, // Will fetch from analytics if needed
             secretCode: quiz.secretCode,
-            students: [],
-            hasAnalytics: false,
+            students: [], // Will fetch from analytics if expanded
+            hasAnalytics: false, // Will fetch on demand
           })
         );
 
+        console.log("Processed quiz history:", quizHistoryData);
         setQuizHistory(quizHistoryData);
+      } else {
+        console.error(
+          "Dashboard API returned unsuccessful:",
+          dashboardResponse.data
+        );
+        toast({
+          title: "Error",
+          description:
+            dashboardResponse.data.message || "Failed to load dashboard data",
+          variant: "destructive",
+        });
       }
     } catch (error: any) {
       console.error("Error fetching quiz history:", error);
@@ -105,16 +126,20 @@ export default function TeacherHistoryPage() {
 
   const fetchQuizAnalytics = async (quizId: string) => {
     try {
+      console.log(`Fetching detailed analytics for quiz: ${quizId}`);
       const analyticsResponse = await teacherAPI.getQuizAnalytics(quizId);
+      console.log(`Analytics response for ${quizId}:`, analyticsResponse);
 
       if (analyticsResponse.data.success) {
         const analyticsData = analyticsResponse.data.data;
+
         setQuizHistory((prev) =>
           prev.map((quiz) => {
             if (quiz.id === quizId) {
               return {
                 ...quiz,
-                totalPoints: analyticsData.quiz?.totalPoints || 0,
+                totalPoints:
+                  analyticsData.quiz?.totalPoints || quiz.totalPoints,
                 students: analyticsData.students || [],
                 hasAnalytics: true,
               };
@@ -123,6 +148,10 @@ export default function TeacherHistoryPage() {
           })
         );
       } else {
+        console.warn(
+          `Analytics failed for quiz ${quizId}:`,
+          analyticsResponse.data.message
+        );
         setQuizHistory((prev) =>
           prev.map((quiz) => {
             if (quiz.id === quizId) {
@@ -148,6 +177,12 @@ export default function TeacherHistoryPage() {
           return quiz;
         })
       );
+
+      toast({
+        title: "Analytics Error",
+        description: "Failed to load detailed quiz analytics",
+        variant: "destructive",
+      });
     }
   };
 
@@ -157,7 +192,7 @@ export default function TeacherHistoryPage() {
 
     if (isExpanding) {
       const quiz = quizHistory.find((q) => q.id === quizId);
-      if (quiz && !quiz.hasAnalytics && quiz.students.length === 0) {
+      if (quiz && !quiz.hasAnalytics) {
         fetchQuizAnalytics(quizId);
       }
     }
@@ -255,8 +290,10 @@ export default function TeacherHistoryPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
-        <span className="ml-2">Loading quiz history...</span>
+        <div className="flex flex-col items-center">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-400 mb-2" />
+          <span className="text-slate-300">Loading quiz history...</span>
+        </div>
       </div>
     );
   }
@@ -270,7 +307,9 @@ export default function TeacherHistoryPage() {
           onBack={() => router.push("/dashboard/teacher")}
         />
 
-        {dashboardStats && <StatsSummary stats={dashboardStats.stats} />}
+        {dashboardStats && dashboardStats.stats && (
+          <StatsSummary stats={dashboardStats.stats} />
+        )}
 
         {/* Quiz History Section */}
         <motion.div

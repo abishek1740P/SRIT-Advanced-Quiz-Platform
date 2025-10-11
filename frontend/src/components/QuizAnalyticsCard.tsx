@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { QuizCardHeader } from "./QuizCardHeader";
 import { StudentPerformanceTable } from "./StudentPerformanceTable";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 
 interface QuizAnalytics {
   id: string;
@@ -42,6 +42,8 @@ export function QuizAnalyticsCard({
   onExportCSV,
   formatDate,
 }: QuizAnalyticsCardProps) {
+  const showTapToLoad = !quiz.hasAnalytics && expandedQuiz !== quiz.id;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -59,6 +61,7 @@ export function QuizAnalyticsCard({
             copiedCode={copiedCode}
             onCopyCode={onCopyCode}
             formatDate={formatDate}
+            showTapToLoad={showTapToLoad}
           />
 
           <CollapsibleContent>
