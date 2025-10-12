@@ -30,6 +30,16 @@ export interface RegisterData {
 }
 
 // Quiz Types
+export interface AIQuestionRequest {
+  title: string;
+  description: string;
+  questionCount?: number;
+}
+
+export interface AIQuestionResponse {
+  questions: Question[];
+  count: number;
+}
 
 export interface Question {
   _id?: string; // Make _id optional

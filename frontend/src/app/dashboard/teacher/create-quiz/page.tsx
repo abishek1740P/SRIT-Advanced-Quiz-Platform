@@ -13,6 +13,8 @@ import { BackgroundElements } from "@/components/BackgroundElements";
 import { useToast } from "@/hooks/use-toast";
 import { teacherAPI } from "@/lib/api";
 import { Question, CreateQuizData } from "@/types";
+import { GoogleGenAI } from "@google/genai";
+import { aiAPI } from "@/lib/api";
 
 interface QuizQuestion extends Question {
   id: string;
@@ -38,6 +40,11 @@ export default function QuizCreationPage() {
   const [showSecretCode, setShowSecretCode] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [aiQuestionCount, setAiQuestionCount] = useState(5); // Default to 5 questions
+
+  // Initialize Gemini AI
+  
 
   // Load template data if provided
   useEffect(() => {
@@ -61,6 +68,66 @@ export default function QuizCreationPage() {
       }
     }
   }, [toast]);
+
+  const generateAIQuestions = async () => {
+    if (!title.trim() || !description.trim()) {
+      toast({
+        title: "Error",
+        description:
+          "Please enter both title and description to generate AI questions",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsGeneratingAI(true);
+
+      const response = await aiAPI.generateQuestions({
+        title,
+        description,
+        questionCount: aiQuestionCount,
+      });
+
+      const generatedQuestions = response.data.data.questions;
+
+      // Transform to our question format with unique IDs
+      const newQuestions: QuizQuestion[] = generatedQuestions.map(
+        (q: Question, index: number) => ({
+          id: `ai-${Date.now()}-${index}`,
+          questionText: q.questionText,
+          choices: q.choices,
+          correctAnswer: q.correctAnswer,
+          points: q.points || 5,
+        })
+      );
+
+      setQuestions(newQuestions);
+
+      toast({
+        title: "AI Questions Generated!",
+        description: `Successfully generated ${newQuestions.length} questions`,
+      });
+    } catch (error: any) {
+      console.error("AI Generation Error:", error);
+
+      let errorMessage = "Failed to generate questions. Please try again.";
+
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.code === "ECONNABORTED") {
+        errorMessage = "Request timeout. Please try again.";
+      }
+
+      toast({
+        title: "AI Generation Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  };
 
   const addQuestion = () => {
     const newQuestion: QuizQuestion = {
@@ -206,6 +273,7 @@ export default function QuizCreationPage() {
         points: 5,
       },
     ]);
+    setAiQuestionCount(5); // Reset to default
   };
 
   const handleBack = () => router.push("/dashboard/teacher");
@@ -236,6 +304,70 @@ export default function QuizCreationPage() {
               duration={duration}
               onDurationChange={setDuration}
             />
+
+            {/* AI Generation Section */}
+            <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold mb-2">
+                    Generate Questions with AI
+                  </h3>
+                  <p className="text-slate-300 text-sm">
+                    Let AI create questions based on your quiz title and
+                    description
+                  </p>
+                </div>
+
+                <div className="flex items-center space-x-4">
+                  {/* Question Count Selector */}
+                  <div className="flex items-center space-x-2">
+                    <label
+                      htmlFor="questionCount"
+                      className="text-sm font-medium text-slate-300"
+                    >
+                      Questions:
+                    </label>
+                    <select
+                      id="questionCount"
+                      value={aiQuestionCount}
+                      onChange={(e) =>
+                        setAiQuestionCount(Number(e.target.value))
+                      }
+                      disabled={isGeneratingAI}
+                      className="bg-slate-700 border border-slate-600 rounded-md px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value={5}>5</option>
+                      <option value={10}>10</option>
+                      <option value={15}>15</option>
+                      <option value={20}>20</option>
+                      <option value={25}>25</option>
+                      <option value={30}>30</option>
+                    </select>
+                  </div>
+
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={generateAIQuestions}
+                    disabled={
+                      isGeneratingAI || !title.trim() || !description.trim()
+                    }
+                    className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-semibold shadow-lg hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                  >
+                    {isGeneratingAI ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Generating {aiQuestionCount} Questions...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <span>✨ Generate Using AI</span>
+                      </div>
+                    )}
+                  </motion.button>
+                </div>
+              </div>
+            </div>
 
             <QuestionsSection
               questions={questions}

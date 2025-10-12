@@ -10,6 +10,8 @@ import {
   DashboardStats,
   ApiResponse,
   Answer,
+  AIQuestionRequest,
+  AIQuestionResponse,
 } from "@/types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -96,4 +98,15 @@ export const studentAPI = {
 
   getStudentQuizzes: (): Promise<{ data: ApiResponse<QuizResponse[]> }> =>
     api.get("/student/quizzes"),
+};
+
+// AI API calls - NEW
+export const aiAPI = {
+  generateQuestions: (
+    data: AIQuestionRequest
+  ): Promise<{ data: ApiResponse<AIQuestionResponse> }> =>
+    api.post("/ai/generate-questions", data),
+
+  checkHealth: (): Promise<{ data: ApiResponse<any> }> =>
+    api.get("/ai/health"),
 };
