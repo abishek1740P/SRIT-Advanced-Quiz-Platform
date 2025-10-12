@@ -60,7 +60,7 @@ Return ONLY valid JSON in this exact format:
 Do not include any additional text, explanations, or markdown formatting.
     `;
 
-    console.log(`Generating ${questionCount} AI questions for: "${title}"`);
+   
 
     // Use the correct model name from the documentation
     const response = await ai.models.generateContent({
@@ -77,7 +77,7 @@ Do not include any additional text, explanations, or markdown formatting.
     // Extract JSON from response
     const jsonMatch = responseText.match(/\[[\s\S]*\]/);
     if (!jsonMatch) {
-      console.error("AI Response (no JSON found):", responseText);
+      
       throw new Error("AI returned invalid response format");
     }
 
@@ -85,8 +85,7 @@ Do not include any additional text, explanations, or markdown formatting.
     try {
       generatedQuestions = JSON.parse(jsonMatch[0]);
     } catch (parseError) {
-      console.error("JSON Parse Error:", parseError);
-      console.error("AI Response:", responseText);
+      
       throw new Error("Failed to parse AI response as JSON");
     }
 
@@ -206,7 +205,7 @@ const checkAIHealth = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("AI Health Check Error:", error);
+    
     res.status(503).json({
       success: false,
       message: "AI service is unavailable",
