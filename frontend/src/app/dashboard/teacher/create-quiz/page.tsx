@@ -44,7 +44,6 @@ export default function QuizCreationPage() {
   const [aiQuestionCount, setAiQuestionCount] = useState(5); // Default to 5 questions
 
   // Initialize Gemini AI
-  
 
   // Load template data if provided
   useEffect(() => {
@@ -313,8 +312,7 @@ export default function QuizCreationPage() {
                     Generate Questions with AI
                   </h3>
                   <p className="text-slate-300 text-sm">
-                    Let AI create questions based on your quiz title and
-                    description
+                    Let AI create questions based on your quiz description
                   </p>
                 </div>
 
