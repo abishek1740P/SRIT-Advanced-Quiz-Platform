@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { QuizCardHeader } from "./QuizCardHeader";
-import { StudentPerformanceTable } from "./StudentPerformanceTable";
+import { StudentPerformanceTable } from "../StudentPerformanceTable";
 import { Loader2, AlertCircle } from "lucide-react";
 
 interface StudentPerformance {

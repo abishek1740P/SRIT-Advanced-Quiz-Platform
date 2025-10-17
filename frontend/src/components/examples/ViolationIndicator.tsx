@@ -1,4 +1,4 @@
-import ViolationIndicator from '../ViolationIndicator';
+import ViolationIndicator from '../Buttons/ViolationIndicator';
 
 export default function ViolationIndicatorExample() {
   return (

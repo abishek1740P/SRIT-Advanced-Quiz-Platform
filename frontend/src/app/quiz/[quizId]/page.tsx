@@ -7,9 +7,9 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress"; // Add this import
-import QuestionCard from "@/components/QuestionCard";
-import Timer from "@/components/Timer"; // Add this import
-import ViolationIndicator from "@/components/ViolationIndicator"; // Add this import
+import QuestionCard from "@/components/QuestionsRelated/QuestionCard";
+import Timer from "@/components/Buttons/Timer"; // Add this import
+import ViolationIndicator from "@/components/Buttons/ViolationIndicator"; // Add this import
 import { useToast } from "@/hooks/use-toast";
 import { studentAPI } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";

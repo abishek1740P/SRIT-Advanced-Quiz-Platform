@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import QuestionCard from '../QuestionCard';
+import QuestionCard from '../QuestionsRelated/QuestionCard';
 
 export default function QuestionCardExample() {
   const [selected, setSelected] = useState<number | undefined>(undefined);

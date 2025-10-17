@@ -1,4 +1,4 @@
-import Timer from '../Timer';
+import Timer from '../Buttons/Timer';
 
 export default function TimerExample() {
   return (

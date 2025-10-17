@@ -17,7 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import QuestionCard from "@/components/QuestionCard";
+import QuestionCard from "@/components/QuestionsRelated/QuestionCard";
 import {
   History,
   Award,

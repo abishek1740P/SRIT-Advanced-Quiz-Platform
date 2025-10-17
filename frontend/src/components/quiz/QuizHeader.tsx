@@ -2,8 +2,8 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import Timer from "@/components/Timer";
-import ViolationIndicator from "@/components/ViolationIndicator";
+import Timer from "@/components/Buttons/Timer";
+import ViolationIndicator from "@/components/Buttons/ViolationIndicator";
 import { Maximize2, X } from "lucide-react";
 import { Quiz } from "@/types";
 

@@ -4,12 +4,12 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { QuizCreationHeader } from "@/components/QuizCreationHeader";
-import { QuizDetailsCard } from "@/components/QuizDetailsCard";
-import { QuestionsSection } from "@/components/QuestionsSection";
-import { PublishSuccessCard } from "@/components/PublishSuccessCard";
-import { PublishActions } from "@/components/PublishActions";
-import { BackgroundElements } from "@/components/BackgroundElements";
+import { QuizCreationHeader } from "@/components/CreateQuizRelated/QuizCreationHeader";
+import { QuizDetailsCard } from "@/components/CreateQuizRelated/QuizDetailsCard";
+import { QuestionsSection } from "@/components/QuestionsRelated/QuestionsSection";
+import { PublishSuccessCard } from "@/components/Cards/PublishSuccessCard";
+import { PublishActions } from "@/components/Buttons/PublishActions";
+import { BackgroundElements } from "@/components/Common/BackgroundElements";
 import { useToast } from "@/hooks/use-toast";
 import { teacherAPI } from "@/lib/api";
 import { Question, CreateQuizData } from "@/types";

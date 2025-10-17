@@ -122,6 +122,8 @@ export interface ProcessedQuizHistory {
     userAnswer: number;
     points: number;
   }[];
+  createdAt: string; // Add this
+  percentage: number; // Add this
 }
 
 // Dashboard Types

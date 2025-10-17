@@ -3,11 +3,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { JoinQuizCard } from "@/components/JoinQuizCard";
-import { PastQuizzesCard } from "@/components/PastQuizzesCard";
+import { JoinQuizCard } from "@/components/Cards/JoinQuizCard";
+import { PastQuizzesCard } from "@/components/Cards/PastQuizzesCard";
 import { DashboardHeader } from "@/components/DashboardHeader";
-import { BackgroundElements } from "@/components/BackgroundElements";
-import { LoadingState } from "@/components/LoadingState";
+import { BackgroundElements } from "@/components/Common/BackgroundElements";
+import { LoadingState } from "@/components/Common/LoadingState";
 import { useToast } from "@/hooks/use-toast";
 import { studentAPI } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
