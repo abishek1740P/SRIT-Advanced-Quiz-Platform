@@ -96,8 +96,11 @@ export const studentAPI = {
   ): Promise<{ data: ApiResponse<QuizResponse> }> =>
     api.post(`/student/${quizId}/submit`, data),
 
-  getStudentQuizzes: (): Promise<{ data: ApiResponse<QuizResponse[]> }> =>
-    api.get("/student/quizzes"),
+  getStudentQuizzes: (params?: {
+    page?: number;
+    limit?: number;
+  }): Promise<{ data: ApiResponse<QuizResponse[]> }> =>
+    api.get("/student/quizzes", { params }),
 };
 
 // AI API calls - NEW
@@ -107,6 +110,5 @@ export const aiAPI = {
   ): Promise<{ data: ApiResponse<AIQuestionResponse> }> =>
     api.post("/ai/generate-questions", data),
 
-  checkHealth: (): Promise<{ data: ApiResponse<any> }> =>
-    api.get("/ai/health"),
+  checkHealth: (): Promise<{ data: ApiResponse<any> }> => api.get("/ai/health"),
 };

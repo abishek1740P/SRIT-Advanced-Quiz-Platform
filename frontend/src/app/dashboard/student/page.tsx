@@ -48,6 +48,12 @@ export default function StudentDashboard() {
           .filter(
             (quizResponse: QuizResponse) => quizResponse.status === "completed"
           )
+          .sort(
+            (a: QuizResponse, b: QuizResponse) =>
+              new Date(b.createdAt || 0).getTime() -
+              new Date(a.createdAt || 0).getTime()
+          )
+          .slice(0, 5) // Take only the 5 most recent quizzes
           .map((quizResponse: QuizResponse) => {
             const quiz =
               typeof quizResponse.quiz === "object" ? quizResponse.quiz : {};
