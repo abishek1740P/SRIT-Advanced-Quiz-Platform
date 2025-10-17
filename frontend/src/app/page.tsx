@@ -14,6 +14,7 @@ import {
   Award,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -71,21 +72,21 @@ export default function HomePage() {
       title: "Create Secure Quizzes",
       description:
         "Build comprehensive assessments with advanced security features",
-      image: "/api/placeholder/600/400",
+      image: "/home_page_assets/secure_img1.jpg",
       color: "from-blue-500/20 to-purple-500/20",
     },
     {
       title: "Monitor Student Progress",
       description:
         "Track performance with detailed analytics and violation reports",
-      image: "/api/placeholder/600/400",
+      image: "/home_page_assets/monitoring_img1.avif",
       color: "from-green-500/20 to-cyan-500/20",
     },
     {
       title: "Enhanced Learning Experience",
       description:
         "Focus on knowledge assessment in a secure, distraction-free environment",
-      image: "/api/placeholder/600/400",
+      image: "/home_page_assets/Enhanced_learning_img1.webp",
       color: "from-orange-500/20 to-red-500/20",
     },
   ];
@@ -180,13 +181,25 @@ export default function HomePage() {
                     transition={{ duration: 0.5 }}
                     className={`absolute inset-0 bg-gradient-to-br ${slides[currentSlide].color} rounded-2xl flex items-center justify-center`}
                   >
-                    <div className="text-center p-8">
-                      <h3 className="text-2xl font-bold mb-4">
-                        {slides[currentSlide].title}
-                      </h3>
-                      <p className="text-slate-300">
-                        {slides[currentSlide].description}
-                      </p>
+                    <div className="relative w-full h-full flex flex-col items-center justify-center text-center p-8">
+                      <div className="relative w-full h-64 mb-6">
+                        <Image
+                          src={slides[currentSlide].image}
+                          alt={slides[currentSlide].title}
+                          fill
+                          className="object-cover rounded-2xl"
+                          priority
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent rounded-2xl"></div>
+                      </div>
+                      <div className="relative z-10">
+                        <h3 className="text-2xl font-bold mb-3">
+                          {slides[currentSlide].title}
+                        </h3>
+                        <p className="text-slate-300">
+                          {slides[currentSlide].description}
+                        </p>
+                      </div>
                     </div>
                   </motion.div>
                 </AnimatePresence>
