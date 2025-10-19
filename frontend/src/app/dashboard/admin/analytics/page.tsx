@@ -23,7 +23,7 @@ interface SystemAnalytics {
   quizzesLast30Days: number;
   responsesLast30Days: number;
   topTeachers: Array<{
-    _id: string;
+    _id?: string; // Make _id optional
     name: string;
     email: string;
     quizCount: number;
@@ -44,7 +44,9 @@ export default function AnalyticsPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [timeRange, setTimeRange] = useState<"7days" | "30days" | "90days">("30days");
+  const [timeRange, setTimeRange] = useState<"7days" | "30days" | "90days">(
+    "30days"
+  );
 
   useEffect(() => {
     fetchAnalyticsData();
@@ -69,7 +71,8 @@ export default function AnalyticsPage() {
       console.error("Failed to fetch analytics:", error);
       toast({
         title: "Error",
-        description: error.response?.data?.message || "Failed to fetch analytics data",
+        description:
+          error.response?.data?.message || "Failed to fetch analytics data",
         variant: "destructive",
       });
     } finally {
@@ -106,10 +109,13 @@ export default function AnalyticsPage() {
           <div className="animate-pulse">
             <div className="h-8 bg-slate-700 rounded w-64 mb-2"></div>
             <div className="h-4 bg-slate-700 rounded w-96 mb-8"></div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="bg-slate-800/30 rounded-xl p-6 border border-slate-700/50">
+                <div
+                  key={i}
+                  className="bg-slate-800/30 rounded-xl p-6 border border-slate-700/50"
+                >
                   <div className="h-6 bg-slate-700 rounded w-32 mb-2"></div>
                   <div className="h-8 bg-slate-700 rounded w-20 mb-4"></div>
                   <div className="h-4 bg-slate-700 rounded w-24"></div>
@@ -177,7 +183,9 @@ export default function AnalyticsPage() {
                 disabled={refreshing}
                 className="px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg font-semibold flex items-center space-x-2 hover:bg-slate-600/50 transition-all text-sm"
               >
-                <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                <RefreshCw
+                  className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`}
+                />
                 <span>Refresh</span>
               </motion.button>
 
@@ -297,7 +305,9 @@ export default function AnalyticsPage() {
               className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700/50"
             >
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-white">Top Teachers</h3>
+                <h3 className="text-lg font-semibold text-white">
+                  Top Teachers
+                </h3>
                 <Award className="w-5 h-5 text-yellow-400" />
               </div>
 
@@ -348,28 +358,35 @@ export default function AnalyticsPage() {
               className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700/50"
             >
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-white">System Summary</h3>
+                <h3 className="text-lg font-semibold text-white">
+                  System Summary
+                </h3>
                 <BarChart3 className="w-5 h-5 text-blue-400" />
               </div>
 
               <div className="space-y-4">
                 <div className="flex justify-between items-center p-3 bg-slate-700/30 rounded-lg">
                   <span className="text-slate-300">Total Quizzes</span>
-                  <span className="text-white font-bold">{stats?.totalQuizzes || 0}</span>
+                  <span className="text-white font-bold">
+                    {stats?.totalQuizzes || 0}
+                  </span>
                 </div>
 
                 <div className="flex justify-between items-center p-3 bg-slate-700/30 rounded-lg">
                   <span className="text-slate-300">Active Quizzes</span>
-                  <span className="text-green-400 font-bold">{stats?.activeQuizzes || 0}</span>
+                  <span className="text-green-400 font-bold">
+                    {stats?.activeQuizzes || 0}
+                  </span>
                 </div>
 
                 <div className="flex justify-between items-center p-3 bg-slate-700/30 rounded-lg">
                   <span className="text-slate-300">Quiz Activity Rate</span>
                   <span className="text-white font-bold">
                     {stats && stats.totalQuizzes > 0
-                      ? `${Math.round((stats.activeQuizzes / stats.totalQuizzes) * 100)}%`
-                      : '0%'
-                    }
+                      ? `${Math.round(
+                          (stats.activeQuizzes / stats.totalQuizzes) * 100
+                        )}%`
+                      : "0%"}
                   </span>
                 </div>
 
@@ -377,16 +394,20 @@ export default function AnalyticsPage() {
                   <span className="text-slate-300">Avg Responses per Quiz</span>
                   <span className="text-white font-bold">
                     {analytics && stats && stats.totalQuizzes > 0
-                      ? Math.round(analytics.responsesLast30Days / stats.totalQuizzes)
-                      : 0
-                    }
+                      ? Math.round(
+                          analytics.responsesLast30Days / stats.totalQuizzes
+                        )
+                      : 0}
                   </span>
                 </div>
               </div>
 
               <div className="mt-6 pt-4 border-t border-slate-700/50">
                 <p className="text-slate-400 text-sm">
-                  Last updated: {analytics?.generatedAt ? new Date(analytics.generatedAt).toLocaleString() : 'N/A'}
+                  Last updated:{" "}
+                  {analytics?.generatedAt
+                    ? new Date(analytics.generatedAt).toLocaleString()
+                    : "N/A"}
                 </p>
               </div>
             </motion.div>
@@ -399,12 +420,15 @@ export default function AnalyticsPage() {
             transition={{ delay: 0.6 }}
             className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700/50"
           >
-            <h3 className="text-lg font-semibold text-white mb-4">Activity Trends</h3>
+            <h3 className="text-lg font-semibold text-white mb-4">
+              Activity Trends
+            </h3>
             <div className="text-center py-12 text-slate-400">
               <TrendingUp className="w-16 h-16 mx-auto mb-4 opacity-50" />
               <p className="text-lg mb-2">Advanced Analytics Coming Soon</p>
               <p className="text-sm">
-                Interactive charts and detailed trend analysis will be available in the next update.
+                Interactive charts and detailed trend analysis will be available
+                in the next update.
               </p>
             </div>
           </motion.div>
