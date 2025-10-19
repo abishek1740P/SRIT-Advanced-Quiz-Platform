@@ -3,16 +3,61 @@ export interface User {
   _id: string;
   name: string;
   email: string;
-  role: "student" | "teacher";
+  role: "student" | "teacher" | "admin";
   createdAt?: string;
   updatedAt?: string;
+}
+
+// frontend/src/app/dashboard/admin/analytics/types.ts
+export interface SystemAnalytics {
+  quizzesLast30Days: number;
+  responsesLast30Days: number;
+  topTeachers: Array<{
+    _id: string;
+    name: string;
+    email: string;
+    quizCount: number;
+  }>;
+  generatedAt: string;
+}
+
+export interface DashboardStats {
+  totalTeachers: number;
+  totalStudents: number;
+  totalQuizzes: number;
+  activeQuizzes: number;
+}
+
+export type TimeRange = "7days" | "30days" | "90days";
+
+export interface Teacher {
+  _id: string;
+  name: string;
+  email: string;
+  role: "teacher";
+  createdAt: string;
+}
+
+export interface AddTeacherForm {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export interface DashboardUser {
+  _id: string;
+  name: string;
+  email: string;
+  role: "teacher" | "student"; // Only these two for admin management
+  createdAt: string;
 }
 
 export interface AuthResponse {
   _id: string;
   name: string;
   email: string;
-  role: "student" | "teacher";
+  role: "student" | "teacher" | "admin";
   token: string;
   createdAt?: string;
 }
@@ -26,7 +71,20 @@ export interface RegisterData {
   name: string;
   email: string;
   password: string;
-  role?: "student" | "teacher";
+  role?: "student" | "teacher" | "admin";
+}
+
+export interface AdminStats {
+  totalTeachers: number;
+  totalStudents: number;
+  totalQuizzes: number;
+  activeQuizzes: number;
+  recentActivity?: {
+    id: string;
+    action: string;
+    user: string;
+    timestamp: string;
+  }[];
 }
 
 // Quiz Types

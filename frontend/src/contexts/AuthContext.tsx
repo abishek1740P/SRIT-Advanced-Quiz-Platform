@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     name: string,
     email: string,
     password: string,
-    role?: "student" | "teacher"
+    role?: "student" | "teacher" | "admin"
   ) => {
     try {
       setLoading(true);
@@ -100,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Determine role based on email or use provided role
-      const userRole: "student" | "teacher" =
+      const userRole: "student" | "teacher" | "admin" =
         role || (email.includes("teacher") ? "teacher" : "student");
 
       // Use real API call

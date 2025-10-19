@@ -112,3 +112,85 @@ export const aiAPI = {
 
   checkHealth: (): Promise<{ data: ApiResponse<any> }> => api.get("/ai/health"),
 };
+
+// Admin API calls
+export const adminAPI = {
+  // Get users by role (teachers/students)
+  getUsers: (
+    role: "teachers" | "students",
+    page?: number,
+    limit?: number,
+    search?: string
+  ): Promise<{ data: ApiResponse<User[]> }> => {
+    const params = new URLSearchParams();
+    params.append("role", role);
+    if (page) params.append("page", page.toString());
+    if (limit) params.append("limit", limit.toString());
+    if (search) params.append("search", search);
+
+    return api.get(`/admin/users?${params.toString()}`);
+  },
+
+  // Add a new teacher
+  addTeacher: (data: {
+    name: string;
+    email: string;
+    password: string;
+  }): Promise<{ data: ApiResponse<User> }> => api.post("/admin/teachers", data),
+
+  // Delete a user (teacher or student)
+  deleteUser: (
+    userId: string
+  ): Promise<{ data: ApiResponse<{ message: string }> }> =>
+    api.delete(`/admin/users/${userId}`),
+
+  // Bulk upload teachers via CSV
+  bulkUploadTeachers: (
+    formData: FormData
+  ): Promise<{
+    data: ApiResponse<{
+      success: number;
+      failed: number;
+      errors: string[];
+    }>;
+  }> =>
+    api.post("/admin/teachers/bulk-upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+
+  // Download users data as CSV
+  downloadUsers: (role: "teachers" | "students"): Promise<{ data: Blob }> =>
+    api.get(`/admin/users/export?role=${role}`, {
+      responseType: "blob",
+    }),
+
+  // Get admin dashboard stats
+  getDashboardStats: (): Promise<{
+    data: ApiResponse<{
+      totalTeachers: number;
+      totalStudents: number;
+      totalQuizzes: number;
+      activeQuizzes: number;
+      recentActivity: Array<{
+        id: string;
+        action: string;
+        user: string;
+        timestamp: string;
+      }>;
+    }>;
+  }> => api.get("/admin/dashboard/stats"),
+
+  // Get system analytics
+  getSystemAnalytics: (): Promise<{
+    data: ApiResponse<{
+      quizzesLast30Days: number;
+      responsesLast30Days: number;
+      topTeachers: Array<{
+        name: string;
+        email: string;
+        quizCount: number;
+      }>;
+      generatedAt: string;
+    }>;
+  }> => api.get("/admin/analytics"),
+};

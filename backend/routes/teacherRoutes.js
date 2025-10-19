@@ -8,7 +8,7 @@ const {
   getQuizStatus,
 } = require("../controllers/teacherController");
 const { protect } = require("../middleware/authMiddleware");
-const { authorize } = require("../middleware/roleMiddleware");
+const { authorize } = require("../middleware/authMiddleware");
 const { userLimiter, apiLimiter } = require("../middleware/rateLimiter");
 
 const router = express.Router();

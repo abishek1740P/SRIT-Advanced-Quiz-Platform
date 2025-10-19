@@ -5,7 +5,7 @@ const {
   getStudentQuizzes,
 } = require("../controllers/studentController");
 const { protect } = require("../middleware/authMiddleware");
-const { authorize } = require("../middleware/roleMiddleware");
+const { authorize } = require("../middleware/authMiddleware");
 const { quizSubmissionLimiter, userLimiter } = require("../middleware/rateLimiter");
 
 const router = express.Router();

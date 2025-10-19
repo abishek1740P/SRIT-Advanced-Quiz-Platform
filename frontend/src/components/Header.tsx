@@ -21,6 +21,8 @@ export default function Header() {
         return "/dashboard/teacher";
       case "student":
         return "/dashboard/student";
+      case "admin":
+        return "/dashboard/admin";
       default:
         return "/dashboard";
     }

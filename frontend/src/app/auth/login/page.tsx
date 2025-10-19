@@ -21,7 +21,9 @@ export default function LoginPage() {
   // Redirect if already authenticated - use useEffect with router
   useEffect(() => {
     if (isAuthenticated && user && !authLoading) {
-      if (user.role === "teacher") {
+      if (user.role === "admin") {
+        router.push("/dashboard/admin");
+      } else if (user.role === "teacher") {
         router.push("/dashboard/teacher");
       } else {
         router.push("/dashboard/student");

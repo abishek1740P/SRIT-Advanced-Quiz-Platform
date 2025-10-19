@@ -8,10 +8,19 @@ import { PastQuizzesCard } from "@/components/Cards/PastQuizzesCard";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { BackgroundElements } from "@/components/Common/BackgroundElements";
 import { LoadingState } from "@/components/Common/LoadingState";
+import { AccessDenied } from "@/components/Common/AccessDenied";
 import { useToast } from "@/hooks/use-toast";
-import { studentAPI } from "@/lib/api";
+import { studentAPI, authAPI } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { QuizResponse } from "@/types";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 interface PastQuiz {
   id: string;
@@ -30,13 +39,35 @@ export default function StudentDashboard() {
   const [pastQuizzes, setPastQuizzes] = useState<PastQuiz[]>([]);
   const [loading, setLoading] = useState(true);
   const [joiningQuiz, setJoiningQuiz] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
   const { user, logout } = useAuth();
 
   useEffect(() => {
-    fetchStudentQuizzes();
+    checkAuthentication();
   }, []);
+
+  const checkAuthentication = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token || !user) {
+        router.push("/auth/login");
+        return;
+      }
+
+      await authAPI.getMe();
+      setAuthChecked(true);
+      fetchStudentQuizzes();
+    } catch (error) {
+      toast({
+        title: "Session Expired",
+        description: "Please log in again",
+        variant: "destructive",
+      });
+      logout();
+    }
+  };
 
   const fetchStudentQuizzes = async () => {
     try {
@@ -174,8 +205,28 @@ export default function StudentDashboard() {
     router.push("/dashboard/student/history");
   };
 
-  if (loading) {
-    return <LoadingState />;
+  const handleRedirectToRoleDashboard = () => {
+    if (user?.role === "teacher") {
+      router.push("/dashboard/teacher");
+    } else if (user?.role === "admin") {
+      router.push("/dashboard/admin");
+    } else {
+      router.push("/auth/login");
+    }
+  };
+
+  if (!authChecked || loading) {
+    return <LoadingState message="Loading Student Dashboard..." />;
+  }
+
+  if (user?.role !== "student") {
+    return (
+      <AccessDenied
+        userRole={user?.role}
+        onRedirect={handleRedirectToRoleDashboard}
+        requiredRole="student"
+      />
+    );
   }
 
   return (

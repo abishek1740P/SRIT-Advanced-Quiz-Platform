@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const aiController = require("../controllers/aiController");
 const { protect } = require("../middleware/authMiddleware");
-const { authorize } = require("../middleware/roleMiddleware");
+const { authorize } = require("../middleware/authMiddleware");
 const { aiLimiter, strictLimiter } = require("../middleware/rateLimiter");
 
 // Apply middleware to all AI routes
