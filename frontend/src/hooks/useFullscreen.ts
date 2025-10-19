@@ -6,9 +6,12 @@ export function useFullscreen(isMobile: boolean = false) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const { toast } = useToast();
 
-  // Check fullscreen state
+  // Check fullscreen state - skip for mobile
   useEffect(() => {
-    if (isMobile) return;
+    if (isMobile) {
+      setIsFullscreen(false); // Ensure fullscreen state is false on mobile
+      return;
+    }
 
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
@@ -33,11 +36,7 @@ export function useFullscreen(isMobile: boolean = false) {
 
   const enterFullscreen = useCallback(async () => {
     if (isMobile) {
-      toast({
-        title: "Mobile Device Detected",
-        description: "Fullscreen is not required on mobile devices",
-        variant: "default",
-      });
+      // No action for mobile
       return;
     }
 
@@ -85,17 +84,20 @@ export function useFullscreen(isMobile: boolean = false) {
   }, [isMobile]);
 
   const toggleFullscreen = useCallback(async () => {
+    if (isMobile) return;
+
     if (isFullscreen) {
       await exitFullscreen();
     } else {
       await enterFullscreen();
     }
-  }, [isFullscreen, enterFullscreen, exitFullscreen]);
+  }, [isFullscreen, enterFullscreen, exitFullscreen, isMobile]);
 
   return {
-    isFullscreen,
+    isFullscreen: isMobile ? false : isFullscreen, // Always false on mobile
     enterFullscreen,
     exitFullscreen,
     toggleFullscreen,
+    isFullscreenSupported: !isMobile, // New property to check if fullscreen is supported
   };
 }

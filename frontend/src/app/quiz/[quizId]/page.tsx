@@ -43,7 +43,7 @@ export default function QuizAttemptPage() {
   const secretCode = searchParams.get("code");
 
   const { isMobile } = useMobileDetection();
-  const { isFullscreen, enterFullscreen, exitFullscreen } =
+  const { isFullscreen, enterFullscreen, isFullscreenSupported } =
     useFullscreen(isMobile);
 
   // In your quiz page component - CORRECTED VERSION
@@ -172,10 +172,6 @@ export default function QuizAttemptPage() {
       });
     }
 
-    if (!isMobile) {
-      exitFullscreen();
-    }
-
     setTimeout(() => router.push("/dashboard/student"), 1500);
   };
 
@@ -265,6 +261,7 @@ export default function QuizAttemptPage() {
         violations={violations}
         isMobile={isMobile}
         isFullscreen={isFullscreen}
+        isFullscreenSupported={isFullscreenSupported}
         progress={progress}
         onEnterFullscreen={enterFullscreen}
         onExit={handleExit}

@@ -12,6 +12,7 @@ interface QuizHeaderProps {
   violations: number;
   isMobile: boolean;
   isFullscreen: boolean;
+  isFullscreenSupported: boolean; // New prop
   progress: number;
   onEnterFullscreen: () => void;
   onExit: () => void;
@@ -23,6 +24,7 @@ export function QuizHeader({
   violations,
   isMobile,
   isFullscreen,
+  isFullscreenSupported,
   progress,
   onEnterFullscreen,
   onExit,
@@ -44,6 +46,7 @@ export function QuizHeader({
             violations={violations}
             isMobile={isMobile}
             isFullscreen={isFullscreen}
+            isFullscreenSupported={isFullscreenSupported}
             onEnterFullscreen={onEnterFullscreen}
             onExit={onExit}
           />
@@ -72,19 +75,22 @@ function QuizHeaderActions({
   violations,
   isMobile,
   isFullscreen,
+  isFullscreenSupported,
   onEnterFullscreen,
   onExit,
 }: {
   violations: number;
   isMobile: boolean;
   isFullscreen: boolean;
+  isFullscreenSupported: boolean;
   onEnterFullscreen: () => void;
   onExit: () => void;
 }) {
   return (
     <div className="flex items-center justify-between md:justify-end gap-2 md:gap-4">
       <ViolationIndicator count={violations} isMobile={isMobile} />
-      {!isMobile && !isFullscreen && (
+      {/* Only show fullscreen button if supported AND not already in fullscreen */}
+      {isFullscreenSupported && !isFullscreen && (
         <FullscreenButton onEnterFullscreen={onEnterFullscreen} />
       )}
       <ExitButton onExit={onExit} isMobile={isMobile} />
@@ -92,7 +98,11 @@ function QuizHeaderActions({
   );
 }
 
-function FullscreenButton({ onEnterFullscreen }: { onEnterFullscreen: () => void }) {
+function FullscreenButton({
+  onEnterFullscreen,
+}: {
+  onEnterFullscreen: () => void;
+}) {
   return (
     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
       <Button
@@ -108,7 +118,13 @@ function FullscreenButton({ onEnterFullscreen }: { onEnterFullscreen: () => void
   );
 }
 
-function ExitButton({ onExit, isMobile }: { onExit: () => void; isMobile: boolean }) {
+function ExitButton({
+  onExit,
+  isMobile,
+}: {
+  onExit: () => void;
+  isMobile: boolean;
+}) {
   return (
     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
       <Button
