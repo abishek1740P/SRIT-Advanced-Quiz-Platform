@@ -2,7 +2,7 @@ const rateLimit = require("express-rate-limit");
 
 const isProduction = process.env.NODE_ENV === "production";
 
-// Environment-based configuration - Much more generous limits
+// Environment-based configuration
 const getLimitConfig = (productionLimit, developmentLimit) => {
   return isProduction ? productionLimit : developmentLimit;
 };
@@ -12,10 +12,11 @@ const getLimitConfig = (productionLimit, developmentLimit) => {
 // Basic API rate limiter (for general endpoints)
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: getLimitConfig(300, 5000), // Increased: 300 in production, 5000 in development
+  max: getLimitConfig(100, 1000), // 100 in production, 1000 in development
   message: {
     success: false,
-    message: "Too many requests, please try again after 15 minutes.",
+    message:
+      "Too many requests from this IP, please try again after 15 minutes.",
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -23,27 +24,28 @@ const apiLimiter = rateLimit({
 
 // ==================== AUTH-SPECIFIC RATE LIMITERS ====================
 
-// Rate limiter for authentication endpoints
+// Strict rate limiter for authentication endpoints
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: getLimitConfig(15, 200), // Increased: 15 in production, 200 in development
+  max: getLimitConfig(5, 50), // 5 in production, 50 in development
   message: {
     success: false,
-    message: "Too many authentication attempts, please try again later.",
+    message:
+      "Too many authentication attempts, please try again after 15 minutes.",
   },
-  skipSuccessfulRequests: true, // Only count failed attempts
+  skipSuccessfulRequests: true,
   standardHeaders: true,
   legacyHeaders: false,
 });
 
 // Rate limiter for registration endpoints
 const registerLimiter = rateLimit({
-  windowMs: 24 * 60 * 60 * 1000, // 24 hours (instead of 1 hour)
-  max: getLimitConfig(10, 100), // Increased: 10 in production, 100 in development
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: getLimitConfig(3, 20), // 3 in production, 20 in development
   message: {
     success: false,
     message:
-      "Too many accounts created from this IP, please try again tomorrow.",
+      "Too many accounts created from this IP, please try again after an hour.",
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -51,10 +53,10 @@ const registerLimiter = rateLimit({
 
 // ==================== STRICT RATE LIMITERS ====================
 
-// Sensitive operations rate limiter
-const sensitiveLimiter = rateLimit({
+// Very strict rate limiter for sensitive operations
+const strictLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 minutes
-  max: getLimitConfig(30, 300), // Increased: 30 in production, 300 in development
+  max: getLimitConfig(10, 100), // 10 in production, 100 in development
   message: {
     success: false,
     message: "Too many requests, please slow down.",
@@ -65,13 +67,14 @@ const sensitiveLimiter = rateLimit({
 
 // ==================== AI-SPECIFIC RATE LIMITERS ====================
 
-// Rate limiter for AI API endpoints
+// Rate limiter for AI API endpoints (to control costs)
 const aiLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: getLimitConfig(30, 150), // Increased: 30 in production, 150 in development
+  max: getLimitConfig(10, 50), // 10 in production, 50 in development
   message: {
     success: false,
-    message: "AI service is busy, please wait a moment before trying again.",
+    message:
+      "Too many AI requests, please wait a minute before making more requests.",
   },
   keyGenerator: (req) => {
     return req.user ? req.user.id : req.ip;
@@ -85,10 +88,10 @@ const aiLimiter = rateLimit({
 // Rate limiter for quiz submissions
 const quizSubmissionLimiter = rateLimit({
   windowMs: 30 * 1000, // 30 seconds
-  max: getLimitConfig(10, 50), // Increased: 10 in production, 50 in development
+  max: getLimitConfig(3, 10), // 3 in production, 10 in development
   message: {
     success: false,
-    message: "Please wait a moment before submitting another quiz.",
+    message: "Too many quiz submissions, please wait a moment.",
   },
   keyGenerator: (req) => {
     return req.user ? `quiz_${req.user.id}` : req.ip;
@@ -97,26 +100,26 @@ const quizSubmissionLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// ==================== USER TIERED RATE LIMITERS ====================
+// ==================== ADMIN/UNLIMITED RATE LIMITERS ====================
 
-// User-specific rate limiter with tiered limits
+// Rate limiter that skips for admin users
 const userLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: (req) => {
+    // Higher limits in development
+    const baseLimit = getLimitConfig(100, 1000);
+
     if (req.user && req.user.role === "admin") {
-      return getLimitConfig(5000, 20000); // Very high for admins
+      return getLimitConfig(1000, 5000); // Admin limit
     }
     if (req.user && req.user.role === "teacher") {
-      return getLimitConfig(1000, 5000); // High for teachers
+      return getLimitConfig(500, 2000); // Teacher limit
     }
-    if (req.user && req.user.role === "premium") {
-      return getLimitConfig(500, 2000); // Good for premium users
-    }
-    return getLimitConfig(300, 1000); // Base for regular users
+    return baseLimit; // Student/regular user limit
   },
   message: {
     success: false,
-    message: "Rate limit exceeded. Please try again in 15 minutes.",
+    message: "Too many requests, please try again later.",
   },
   keyGenerator: (req) => {
     return req.user ? req.user.id : req.ip;
@@ -125,29 +128,49 @@ const userLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// ==================== PUBLIC API LIMITER ====================
-
-// For public APIs that might be called frequently
-const publicApiLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: getLimitConfig(60, 300), // 1 request per second in production
+// Skip rate limiting for certain conditions
+const skipRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: (req) => {
+    // Skip rate limiting for admin users
+    if (req.user && req.user.role === "admin") {
+      return 0; // 0 means no rate limiting
+    }
+    return getLimitConfig(100, 1000); // Regular users
+  },
+  skip: (req) => {
+    // Skip rate limiting for admin users entirely
+    return req.user && req.user.role === "admin";
+  },
   message: {
     success: false,
-    message: "Rate limit exceeded. Please limit requests to 1 per second.",
+    message: "Too many requests, please try again later.",
   },
   standardHeaders: true,
   legacyHeaders: false,
 });
 
-// ==================== DEVELOPMENT/TESTING ====================
+// ==================== DEVELOPMENT/TESTING RATE LIMITERS ====================
 
-// Very generous development limiter
+// Development rate limiter (more lenient)
 const devLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: 10000, // Extremely high for development
+  max: 1000, // Very high limit for development
   message: {
     success: false,
     message: "Development rate limit exceeded.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Disabled rate limiter for testing
+const disabledLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 1000000, // Essentially disabled
+  message: {
+    success: false,
+    message: "Rate limit exceeded (this should not happen in testing).",
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -158,32 +181,25 @@ const devLimiter = rateLimit({
 const rateLimitInfo = {
   environment: isProduction ? "production" : "development",
   limits: {
-    api: getLimitConfig(300, 5000),
-    auth: getLimitConfig(15, 200),
-    register: getLimitConfig(10, 100),
-    ai: getLimitConfig(30, 150),
-    quiz: getLimitConfig(10, 50),
-    publicApi: getLimitConfig(60, 300),
-  },
-  messages: {
-    note: "Rate limits are per IP address unless user is authenticated",
-    authentication: "Authenticated users get higher limits based on role",
-    development: "Development environment has much higher limits for testing",
+    api: getLimitConfig(100, 1000),
+    auth: getLimitConfig(5, 50),
+    register: getLimitConfig(3, 20),
+    ai: getLimitConfig(10, 50),
+    quiz: getLimitConfig(3, 10),
   },
 };
 
-console.log("🔓 Rate limiting configured for:", rateLimitInfo.environment);
-console.log("📈 Rate limits:", rateLimitInfo.limits);
-console.log("💡 Note: These are reasonable limits for most applications");
+console.log("🔒 Rate limiting configured for:", rateLimitInfo.environment);
+console.log("📊 Rate limits:", rateLimitInfo.limits);
 
 // ==================== EXPORTS ====================
 
 module.exports = {
   // General limiters
   apiLimiter,
-  sensitiveLimiter,
+  strictLimiter,
   userLimiter,
-  publicApiLimiter,
+  skipRateLimit,
 
   // Auth limiters
   authLimiter,
@@ -193,8 +209,12 @@ module.exports = {
   aiLimiter,
   quizSubmissionLimiter,
 
-  // Development limiter
+  // Development limiters
   devLimiter,
+  disabledLimiter,
+
+  // Environment info (useful for debugging)
+  rateLimitInfo,
 
   // Helper function to create custom rate limiters
   createCustomLimiter: (options = {}) => {
@@ -203,7 +223,7 @@ module.exports = {
       max: getLimitConfig(100, 1000),
       message: {
         success: false,
-        message: "Rate limit exceeded. Please try again later.",
+        message: "Too many requests, please try again later.",
       },
       standardHeaders: true,
       legacyHeaders: false,
@@ -212,9 +232,6 @@ module.exports = {
     return rateLimit({ ...defaults, ...options });
   },
 
-  // Utility to check current environment limits
+  // Utility function to check current environment limits
   getCurrentLimits: () => rateLimitInfo,
-
-  // Helper to determine if we're in development
-  isDevelopment: !isProduction,
 };
