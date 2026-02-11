@@ -11,7 +11,7 @@ router.post("/login", authLimiter, login);
 
 // Protected routes with general rate limiting
 router.use(protect); // JWT authentication first
-router.use(apiLimiter); // Then apply rate limiting
+// router.use(apiLimiter); // Then apply rate limiting
 
 router.get("/me", getMe);
 
