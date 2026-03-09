@@ -220,7 +220,7 @@ function Toolbar({
   activeFormats: Set<string>;
 }) {
   const [clickedButton, setClickedButton] = useState<string | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleButtonClick = (cmd: string) => {
     setClickedButton(cmd);
