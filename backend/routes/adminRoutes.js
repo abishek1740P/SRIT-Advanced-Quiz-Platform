@@ -17,7 +17,7 @@ router.post("/teachers", adminController.addTeacher);
 router.post(
   "/teachers/bulk-upload",
   upload.single("file"),
-  adminController.bulkUploadTeachers
+  adminController.bulkUploadTeachers,
 );
 
 // Dashboard and analytics

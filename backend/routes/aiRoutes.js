@@ -1,18 +1,16 @@
 const express = require("express");
 const router = express.Router();
 const aiController = require("../controllers/aiController");
-const { protect } = require("../middleware/authMiddleware");
-const { authorize } = require("../middleware/authMiddleware");
-const { aiLimiter, strictLimiter } = require("../middleware/rateLimiter");
+const { protect, authorize } = require("../middleware/authMiddleware");
 
 // Apply middleware to all AI routes
 router.use(protect);
 router.use(authorize("teacher"));
 
-// Generate quiz questions with AI-specific rate limiting
-router.post("/generate-questions", aiLimiter, aiController.generateQuestions);
+// Generate quiz questions
+router.post("/generate-questions", aiController.generateQuestions);
 
-// Check AI service health with strict rate limiting
-router.get("/health", strictLimiter, aiController.checkAIHealth);
+// Check AI service health
+router.get("/health", aiController.checkAIHealth);
 
 module.exports = router;

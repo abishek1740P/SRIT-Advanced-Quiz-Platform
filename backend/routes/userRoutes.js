@@ -1,17 +1,15 @@
 const express = require("express");
 const { register, login, getMe } = require("../controllers/userController");
 const { protect } = require("../middleware/authMiddleware");
-const { authLimiter, registerLimiter, apiLimiter } = require("../middleware/rateLimiter");
 
 const router = express.Router();
 
-// Public routes with specific rate limiting
-router.post("/register", registerLimiter, register);
-router.post("/login", authLimiter, login);
+// Public routes
+router.post("/register", register);
+router.post("/login", login);
 
-// Protected routes with general rate limiting
-router.use(protect); // JWT authentication first
-// router.use(apiLimiter); // Then apply rate limiting
+// Protected routes
+router.use(protect); // JWT authentication
 
 router.get("/me", getMe);
 

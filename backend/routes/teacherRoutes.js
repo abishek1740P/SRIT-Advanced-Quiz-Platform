@@ -7,16 +7,14 @@ const {
   toggleQuizStatus,
   getQuizStatus,
 } = require("../controllers/teacherController");
-const { protect } = require("../middleware/authMiddleware");
-const { authorize } = require("../middleware/authMiddleware");
-const { userLimiter, apiLimiter } = require("../middleware/rateLimiter");
+
+const { protect, authorize } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
 // Apply middleware to all routes
 router.use(protect);
 router.use(authorize("teacher"));
-router.use(userLimiter); // Apply user-specific rate limiting
 
 // Quiz CRUD routes
 router.post("/quizzes", createQuiz);
