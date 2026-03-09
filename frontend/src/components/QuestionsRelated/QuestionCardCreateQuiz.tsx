@@ -420,24 +420,21 @@ function RichEditor({
     restoreSelection();
 
     if (cmd === "increaseFontSize" || cmd === "decreaseFontSize") {
-      // Get current font size
       let currentSize = getCurrentFontSize();
 
-      // Calculate new size
       if (cmd === "increaseFontSize") {
         currentSize = Math.min(7, currentSize + 1);
       } else {
         currentSize = Math.max(1, currentSize - 1);
       }
 
-      // Apply font size using execCommand with font size command
       document.execCommand("fontSize", false, currentSize.toString());
     } else if (cmd === "superscript" || cmd === "subscript") {
       document.execCommand(cmd, false);
     } else if (cmd === "formatBlock") {
       document.execCommand("formatBlock", false, "pre");
     } else {
-      document.execCommand(cmd, false, null);
+      document.execCommand(cmd, false, undefined);
     }
 
     // Check active formats after command
