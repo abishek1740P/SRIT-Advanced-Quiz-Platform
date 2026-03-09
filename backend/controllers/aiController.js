@@ -1,9 +1,16 @@
-const { GoogleGenAI } = require("@google/genai");
+const Groq = require("groq-sdk");
 
-// Generate quiz questions using AI
+// Initialize Groq with API key
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY,
+});
+
+// Generate quiz questions using Groq
 const generateQuestions = async (req, res) => {
   try {
     const { title, description, questionCount = 5 } = req.body;
+
+    console.log("Received request:", { title, description, questionCount });
 
     // Validate input
     if (!title || !title.trim()) {
@@ -27,15 +34,19 @@ const generateQuestions = async (req, res) => {
       });
     }
 
-    // Initialize Gemini AI with the correct API key
-    const ai = new GoogleGenAI({
-      apiKey: process.env.GEMINI_API_KEY,
-    });
+    // Check if API key exists
+    if (!process.env.GROQ_API_KEY) {
+      console.error("GROQ_API_KEY is not set in environment variables");
+      return res.status(500).json({
+        success: false,
+        message: "AI service configuration error - GROQ_API_KEY is missing",
+      });
+    }
 
     const prompt = `
 Generate a quiz with exactly ${questionCount} multiple choice questions based on the following topic:
 
-
+Title: ${title}
 Description: ${description}
 
 Requirements:
@@ -47,46 +58,72 @@ Requirements:
 - Choices should be plausible and educational
 - Format the response as a valid JSON array only
 
-Return ONLY valid JSON in this exact format:
+IMPORTANT: Return ONLY the JSON array, no other text, no markdown formatting, no explanations.
+
+Example format:
 [
   {
-    "questionText": "Question text here?",
-    "choices": ["Choice A", "Choice B", "Choice C", "Choice D"],
-    "correctAnswer": 0,
+    "questionText": "What is 2+2?",
+    "choices": ["3", "4", "5", "6"],
+    "correctAnswer": 1,
     "points": 5
   }
 ]
-
-Do not include any additional text, explanations, or markdown formatting.
     `;
 
-   
+    console.log("Sending request to Groq API...");
 
-    // Use the correct model name from the documentation
-    const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash", // Use gemini-2.0-flash instead of gemini-pro
-      contents: prompt,
+    // Make request to Groq API with updated model
+    const chatCompletion = await groq.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a quiz generator that outputs ONLY valid JSON arrays. Never include explanations, markdown, or any other text.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      // Using llama-3.3-70b-versatile (current recommended model)
+      model: "llama-3.3-70b-versatile", // Updated from decommissioned mixtral
+      temperature: 0.7,
+      max_tokens: 4000,
+      top_p: 1,
     });
 
-    const responseText = response.text?.trim();
+    console.log("Received response from Groq API");
+
+    const responseText = chatCompletion.choices[0]?.message?.content?.trim();
 
     if (!responseText) {
       throw new Error("AI returned empty response");
     }
 
-    // Extract JSON from response
-    const jsonMatch = responseText.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) {
-      
-      throw new Error("AI returned invalid response format");
-    }
+    console.log("Raw response:", responseText.substring(0, 200) + "...");
 
+    // Try to parse the entire response as JSON first
     let generatedQuestions;
     try {
-      generatedQuestions = JSON.parse(jsonMatch[0]);
-    } catch (parseError) {
-      
-      throw new Error("Failed to parse AI response as JSON");
+      generatedQuestions = JSON.parse(responseText);
+    } catch (e) {
+      // If that fails, try to extract JSON array
+      const jsonMatch = responseText.match(/\[[\s\S]*\]/);
+      if (jsonMatch) {
+        try {
+          generatedQuestions = JSON.parse(jsonMatch[0]);
+        } catch (parseError) {
+          console.error("JSON Parse Error:", parseError);
+          console.error("Attempted to parse:", jsonMatch[0].substring(0, 300));
+          throw new Error("Failed to parse AI response as JSON");
+        }
+      } else {
+        console.error("No JSON array found in response:", responseText);
+        throw new Error(
+          "AI returned invalid response format - no JSON array found",
+        );
+      }
     }
 
     // Validate the generated questions structure
@@ -94,30 +131,46 @@ Do not include any additional text, explanations, or markdown formatting.
       throw new Error("AI response is not an array");
     }
 
+    if (generatedQuestions.length === 0) {
+      throw new Error("AI returned empty questions array");
+    }
+
     // Validate each question
     const validatedQuestions = generatedQuestions.map((q, index) => {
-      if (
-        !q.questionText ||
-        !Array.isArray(q.choices) ||
-        q.choices.length !== 4
-      ) {
-        throw new Error(`Invalid question structure at index ${index}`);
+      // Check required fields
+      if (!q.questionText) {
+        q.questionText = `Question ${index + 1}`;
       }
 
+      if (!Array.isArray(q.choices)) {
+        q.choices = ["Option A", "Option B", "Option C", "Option D"];
+      }
+
+      // Ensure we have exactly 4 choices
+      let choices = [...q.choices];
+      if (choices.length < 4) {
+        // Pad with default options
+        const defaultOptions = ["Option A", "Option B", "Option C", "Option D"];
+        while (choices.length < 4) {
+          choices.push(defaultOptions[choices.length]);
+        }
+      }
+      if (choices.length > 4) {
+        choices = choices.slice(0, 4);
+      }
+
+      // Ensure all choices are strings and not empty
+      choices = choices.map((choice, i) => {
+        const choiceStr = String(choice || "").trim();
+        return choiceStr || `Option ${String.fromCharCode(65 + i)}`;
+      });
+
       // Ensure correctAnswer is within bounds
-      const correctAnswer = Math.max(
-        0,
-        Math.min(3, parseInt(q.correctAnswer) || 0)
-      );
-
-      // Ensure all choices are strings
-      const choices = q.choices
-        .map((choice) => String(choice).trim())
-        .filter((choice) => choice);
-
-      if (choices.length !== 4) {
-        throw new Error(
-          `Question ${index + 1} must have exactly 4 non-empty choices`
+      let correctAnswer = 0;
+      if (q.correctAnswer !== undefined && q.correctAnswer !== null) {
+        correctAnswer = Math.max(
+          0,
+          Math.min(3, parseInt(q.correctAnswer) || 0),
         );
       }
 
@@ -129,6 +182,10 @@ Do not include any additional text, explanations, or markdown formatting.
       };
     });
 
+    console.log(
+      `Successfully validated ${validatedQuestions.length} questions`,
+    );
+
     res.json({
       success: true,
       message: `Successfully generated ${validatedQuestions.length} questions`,
@@ -138,39 +195,35 @@ Do not include any additional text, explanations, or markdown formatting.
       },
     });
   } catch (error) {
-    console.error("AI Generation Error:", error);
+    console.error("Groq API Error Details:", {
+      message: error.message,
+      status: error.status,
+      statusCode: error.statusCode,
+      stack: error.stack,
+    });
 
-    // Specific error handling
-    if (
-      error.message.includes("API key") ||
-      error.message.includes("GEMINI_API_KEY")
-    ) {
+    // Specific error handling for Groq
+    if (error.status === 401 || error.statusCode === 401) {
       return res.status(500).json({
         success: false,
-        message: "AI service configuration error - check GEMINI_API_KEY",
-        error: "Invalid API configuration",
+        message: "Invalid API key. Please check your GROQ_API_KEY",
+        error: "Authentication failed",
       });
     }
 
-    if (
-      error.message.includes("quota") ||
-      error.message.includes("rate limit")
-    ) {
+    if (error.status === 429 || error.statusCode === 429) {
       return res.status(429).json({
         success: false,
-        message: "AI service quota exceeded. Please try again later.",
-        error: error.message,
+        message: "Rate limit exceeded. Please try again later.",
+        error: "Too many requests",
       });
     }
 
-    if (
-      error.message.includes("model") ||
-      error.message.includes("not found")
-    ) {
+    if (error.status === 400 || error.statusCode === 400) {
       return res.status(500).json({
         success: false,
-        message: "AI model configuration error",
-        error: "Model not available",
+        message: "Invalid request to Groq API",
+        error: error.message,
       });
     }
 
@@ -185,27 +238,41 @@ Do not include any additional text, explanations, or markdown formatting.
 // Health check for AI service
 const checkAIHealth = async (req, res) => {
   try {
-    const ai = new GoogleGenAI({
-      apiKey: process.env.GEMINI_API_KEY,
+    if (!process.env.GROQ_API_KEY) {
+      return res.status(503).json({
+        success: false,
+        message: "GROQ_API_KEY is not configured",
+      });
+    }
+
+    // Simple test prompt to check if API is working
+    const chatCompletion = await groq.chat.completions.create({
+      messages: [
+        {
+          role: "user",
+          content: "Say 'OK' if you are working.",
+        },
+      ],
+      model: "llama-3.3-70b-versatile", // Updated model
+      temperature: 0,
+      max_tokens: 10,
     });
 
-    // Simple test prompt
-    const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash", // Use gemini-2.0-flash
-      contents: "Respond with 'OK' if working.",
-    });
+    const response = chatCompletion.choices[0]?.message?.content?.trim();
 
     res.json({
       success: true,
       message: "AI service is operational",
       data: {
-        service: "Google Gemini",
+        service: "Groq",
         status: "active",
-        response: response.text?.trim(),
+        model: "llama-3.3-70b-versatile",
+        response: response || "OK",
       },
     });
   } catch (error) {
-    
+    console.error("Groq Health Check Error:", error);
+
     res.status(503).json({
       success: false,
       message: "AI service is unavailable",
@@ -214,7 +281,90 @@ const checkAIHealth = async (req, res) => {
   }
 };
 
+// Get available models
+const getAvailableModels = async (req, res) => {
+  try {
+    // Current active Groq models (as of 2024)
+    const models = [
+      {
+        id: "llama-3.3-70b-versatile",
+        name: "Llama 3.3 70B",
+        context: 8192,
+        description: "Latest Llama model, great for complex tasks",
+      },
+      {
+        id: "llama-3.1-8b-instant",
+        name: "Llama 3.1 8B",
+        context: 8192,
+        description: "Fast and efficient, good for simple quizzes",
+      },
+      {
+        id: "gemma2-9b-it",
+        name: "Gemma 2 9B",
+        context: 8192,
+        description: "Google's Gemma 2 model",
+      },
+      {
+        id: "llama3-70b-8192",
+        name: "Llama 3 70B",
+        context: 8192,
+        description: "Powerful, slightly older version",
+      },
+      {
+        id: "llama3-8b-8192",
+        name: "Llama 3 8B",
+        context: 8192,
+        description: "Fast and efficient",
+      },
+    ];
+
+    res.json({
+      success: true,
+      data: models,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+// Test endpoint to verify Groq connection
+const testGroqConnection = async (req, res) => {
+  try {
+    console.log("Testing Groq connection...");
+    console.log("API Key exists:", !!process.env.GROQ_API_KEY);
+
+    const chatCompletion = await groq.chat.completions.create({
+      messages: [
+        {
+          role: "user",
+          content: "Say 'Connection successful' if you can hear me.",
+        },
+      ],
+      model: "llama-3.3-70b-versatile",
+      max_tokens: 20,
+    });
+
+    res.json({
+      success: true,
+      message: "Groq connection successful",
+      response: chatCompletion.choices[0]?.message?.content,
+    });
+  } catch (error) {
+    console.error("Groq test failed:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      status: error.status,
+    });
+  }
+};
+
 module.exports = {
   generateQuestions,
   checkAIHealth,
+  getAvailableModels,
+  testGroqConnection,
 };

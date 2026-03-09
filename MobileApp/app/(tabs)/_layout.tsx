@@ -13,8 +13,9 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
-        headerShown: false, // This hides the header, good for WebView
+        headerShown: false,
         tabBarButton: HapticTab,
+        tabBarStyle: { display: "none" }, // This hides the tab bar
       }}
     >
       <Tabs.Screen
@@ -23,15 +24,6 @@ export default function TabLayout() {
           title: "Home",
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="house.fill" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: "Info",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="info.circle.fill" color={color} />
           ),
         }}
       />
